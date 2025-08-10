@@ -15,7 +15,7 @@ export default function Page() {
 
   useEffect(() => {
     const today = new Date()
-    const firstDay = new Date(2025, 7, 8)
+    const firstDay = new Date(2025, 7, 9)
     today.setHours(0, 0, 0, 0)
     firstDay.setHours(0, 0, 0, 0)
 
