@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client"
 import { QRCodeCanvas } from "qrcode.react"
-import React, { useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import Header from "../components/Header"
 
 type ValeType = {
@@ -16,35 +16,51 @@ type ValeType = {
 const valesDisponibles: ValeType[] = [
   {
     id: "vale1",
-    name: "Vale de abrazo",
+    name: "Vale de masaje",
     cost: 5,
-    description: "Un abrazo especial para compartir juntos.",
+    description: "Un masaje especial donde tu quieras.",
     image: "/gryffindor.png",
     color: "#B62125",
   },
   {
     id: "vale2",
     name: "Vale de cena romántica",
-    cost: 15,
-    description: "Una cena para dos con ambiente especial.",
+    cost: 25,
+    description: "Una cena en el lugar que escojas.",
     image: "/slytherin.png",
     color: "#004325",
   },
   {
     id: "vale3",
-    name: "Vale de día de película",
-    cost: 10,
+    name: "Vale de día/noche de película",
+    cost: 15,
     description: "Una maratón de películas favoritos.",
     image: "/ravenclaw.png",
     color: "#016DAB",
   },
   {
     id: "vale4",
-    name: "Vale de día de película5ad",
-    cost: 10,
-    description: "Una maratón de películas favoritos.",
+    name: "Vale de día/noche de juegos",
+    cost: 5,
+    description: "Un día o noche de tus juegos favoritos.",
     image: "/hufflepuff.png",
     color: "#D09A20",
+  },
+  {
+    id: "vale5",
+    name: "Vale de viaje",
+    cost: 50,
+    description: "Un viaje de 1 dia completo a su lugar de preferencia",
+    image: "/gryffindor.png",
+    color: "#B62125",
+  },
+  {
+    id: "vale6",
+    name: "Vale de ir al parque de diversiones",
+    cost: 20,
+    description: "Un día en el parque de diversiones.",
+    image: "/slytherin.png",
+    color: "#004325",
   },
 ]
 
@@ -74,6 +90,30 @@ export default function ValesPage() {
     localStorage.setItem("totalScore", (totalScore - vale.cost).toString())
   }
 
+  // Cerrar modal con ESC
+  useEffect(() => {
+    function handleEsc(e: KeyboardEvent) {
+      if (e.key === "Escape") setGeneratedVale(null)
+    }
+    window.addEventListener("keydown", handleEsc)
+    return () => window.removeEventListener("keydown", handleEsc)
+  }, [])
+
+  useEffect(() => {
+    if (generatedVale) {
+      // Cuando modal está abierto
+      document.body.style.overflow = "hidden"
+    } else {
+      // Cuando modal está cerrado
+      document.body.style.overflow = "auto"
+    }
+
+    // Limpieza en caso de que el componente se desmonte
+    return () => {
+      document.body.style.overflow = "auto"
+    }
+  }, [generatedVale])
+
   return (
     <>
       <Header />
@@ -87,7 +127,7 @@ export default function ValesPage() {
           {valesDisponibles.map((vale) => (
             <div
               key={vale.id}
-              className="rounded-lg shadow-lg flex items-center gap-4 h-48 p-2"
+              className="rounded-lg shadow-lg flex items-center gap-4 max-h-54 p-2"
               style={{ backgroundColor: vale.color }}
             >
               <img
@@ -115,24 +155,66 @@ export default function ValesPage() {
           ))}
         </div>
 
+        {/* MODAL Harry Potter */}
         {generatedVale && (
-          <div
-            className="mx-auto p-6 rounded-lg max-w-md text-center text-black"
-            style={{ backgroundColor: generatedVale.color }}
-          >
-            <h2 className="text-2xl font-bold mb-4">{generatedVale.name}</h2>
-            <p className="mb-4">{generatedVale.description}</p>
-            <p className="mb-4 font-semibold">
-              Código único: <br />
-              <code>{qrCodeValue}</code>
-            </p>
-            <QRCodeCanvas
-              value={qrCodeValue}
-              size={180}
-              bgColor="#fff"
-              fgColor="#000"
+          <>
+            {/* Fondo oscuro */}
+            <div
+              onClick={() => setGeneratedVale(null)}
+              className="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm z-50"
             />
-          </div>
+
+            {/* Modal */}
+            <div className="fixed inset-0 flex items-center justify-center z-50 p-6 ">
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="relative bg-[#1a1a1a]  rounded-3xl shadow-2xl max-w-lg w-full px-8 py-30 border-4 border-yellow-600 font-serif"
+                style={{
+                  backgroundImage: "url('/pergamino.jpg')", // pergamino textura
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }}
+              >
+                {/* Botón cerrar */}
+                <button
+                  onClick={() => setGeneratedVale(null)}
+                  className="absolute top-4 right-6 text-black hover:text-yellow-400 transition text-5xl font-bold cursor-pointer"
+                  aria-label="Cerrar modal"
+                >
+                  ×
+                </button>
+
+                {/* Título */}
+                <h2 className="text-xl font-bold mb-4 mt-8 drop-shadow-md tracking-wide text-shadow-black text-black flex flex-col items-center">
+                  🎟️ Vale Mágico
+                  <span>{generatedVale.name}</span>
+                </h2>
+
+                {/* Descripción */}
+                <p className="mb-6 text-lg text-black drop-shadow-md text-center">
+                  {generatedVale.description}
+                </p>
+
+                {/* Código único */}
+                <div className="mb-6 bg-opacity-70 p-4 rounded-lg text-center font-monospace tracking-widest text-xl select-all text-black">
+                  <strong>Código único:</strong>
+                  <br />
+                  <code className="break-words">{qrCodeValue}</code>
+                </div>
+
+                {/* QR */}
+                <div className="flex justify-center">
+                  <QRCodeCanvas
+                    value={qrCodeValue}
+                    size={180}
+                    bgColor="#fff"
+                    fgColor="#000"
+                    className="rounded-lg border-4  shadow-lg"
+                  />
+                </div>
+              </div>
+            </div>
+          </>
         )}
       </div>
     </>

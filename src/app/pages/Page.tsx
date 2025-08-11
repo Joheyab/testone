@@ -1,10 +1,10 @@
 "use client"
-import { useRouter } from "next/navigation"
-import React, { ChangeEvent, useEffect, useRef, useState } from "react"
+import { ChangeEvent, useEffect, useRef, useState } from "react"
 import Confetti from "react-confetti"
 import FloatingCandles from "../components/FloatingCandles"
-import { questions } from "../data/questions"
 import Header from "../components/Header"
+import TypewriterWithFeather from "../components/TypewriterWithFeather"
+import { questions } from "../data/questions"
 const LOCAL_STORAGE_KEY = "dailyQuestionsAnswers"
 const LOCAL_STORAGE_SCORE = "totalScore"
 
@@ -24,11 +24,9 @@ export default function Page() {
   const [totalScore, setTotalScore] = useState(0)
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
-  
-
   useEffect(() => {
     const today = new Date()
-    const firstDay = new Date(2025, 7, 8)
+    const firstDay = new Date(2025, 7, 9)
     today.setHours(0, 0, 0, 0)
     firstDay.setHours(0, 0, 0, 0)
 
@@ -81,6 +79,20 @@ export default function Page() {
       }
     }
   }, [answers, currentDay, dayToShow])
+  useEffect(() => {
+    if (showFinalModal || showModalCorrect) {
+      // Cuando modal está abierto
+      document.body.style.overflow = "hidden"
+    } else {
+      // Cuando modal está cerrado
+      document.body.style.overflow = "auto"
+    }
+
+    // Limpieza en caso de que el componente se desmonte
+    return () => {
+      document.body.style.overflow = "auto"
+    }
+  }, [showFinalModal, showModalCorrect])
 
   if (dayToShow === null) {
     return (
@@ -154,16 +166,18 @@ export default function Page() {
     }
   }
 
-  
   return (
     <div className="relative min-h-screen bg-black text-white">
       <FloatingCandles />
       {showConfetti && <Confetti />}
-      <Header/>
+      {/*<Header />*/}
       <main className="relative z-10 flex flex-col items-center justify-center h-screen px-4">
         <div className="max-w-xl text-center">
           <h1 className="text-3xl font-bold mb-6">Día #{dayToShow}</h1>
-          <p className="mb-4 text-xl">{questionData.question}</p>
+          <TypewriterWithFeather
+            text={questionData.question}
+            key={questionData.day} // Esto reinicia solo cuando la pregunta cambia
+          />
           <p className=" mb-4 text-sm">Puntaje: {questionData.score}</p>
           <div className="grid grid-cols-1 gap-3">
             {questionData.day === 50 ? (
@@ -200,10 +214,10 @@ export default function Page() {
               </>
             )}
           </div>
+        </div>
           {feedback && (
             <p className="mt-4 font-semibold text-red-400">{feedback}</p>
           )}
-        </div>
       </main>
 
       {/* Modal para respuesta correcta (no último día) */}
