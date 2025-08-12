@@ -2,7 +2,6 @@
 import { ChangeEvent, useEffect, useRef, useState } from "react"
 import Confetti from "react-confetti"
 import FloatingCandles from "../components/FloatingCandles"
-import Header from "../components/Header"
 import TypewriterWithFeather from "../components/TypewriterWithFeather"
 import { questions } from "../data/questions"
 const LOCAL_STORAGE_KEY = "dailyQuestionsAnswers"
@@ -20,6 +19,7 @@ export default function Page() {
   const [showModalCorrect, setShowModalCorrect] = useState(false)
   const [showFinalModal, setShowFinalModal] = useState(false)
   const [showProposal, setShowProposal] = useState<boolean>(false)
+  const [questionScore, setQuestionScore] = useState<number>(0)
   const [code, setCode] = useState<string>("")
   const [totalScore, setTotalScore] = useState(0)
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -94,6 +94,14 @@ export default function Page() {
     }
   }, [showFinalModal, showModalCorrect])
 
+  const questionData = questions.find((q) => q.day === dayToShow)
+
+  useEffect(() => {
+    if (questionData) {
+      setQuestionScore(questionData.score)
+    }
+  }, [questionData])
+
   if (dayToShow === null) {
     return (
       <div className="relative min-h-screen bg-black text-white flex items-center justify-center">
@@ -102,35 +110,38 @@ export default function Page() {
     )
   }
 
-  const questionData = questions.find((q) => q.day === dayToShow)
   if (!questionData) return null
 
   const handleAnswer = (option: string) => {
-    if (option === questionData.answer) {
-      setAnswers((prev) => {
-        const updated = { ...prev, [dayToShow]: option }
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated))
-        return updated
-      })
-
-      setTotalScore((prev) => {
-        const newScore = prev + questionData.score
-        localStorage.setItem(LOCAL_STORAGE_SCORE, newScore.toString())
-        return newScore
-      })
-
-      if (dayToShow === 50) {
-        // Última pregunta correcta
-        setShowFinalModal(true)
-        setShowConfetti(true)
-        setFeedback(null)
-      } else {
-        setShowModalCorrect(true)
-        setShowConfetti(true)
-        setFeedback(null)
-      }
-    } else {
+    if (option !== questionData.answer) {
+      // Restar 1 si es incorrecta, pero sin bajar de 0
+      setQuestionScore((prev) => Math.max(prev - 1, 0))
       setFeedback("Respuesta incorrecta. Intenta de nuevo.")
+      return
+    }
+
+    // Si es correcta
+    setAnswers((prev) => {
+      const updated = { ...prev, [dayToShow]: option }
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated))
+      return updated
+    })
+
+    setTotalScore((prev) => {
+      const newScore = prev + questionScore
+      localStorage.setItem(LOCAL_STORAGE_SCORE, newScore.toString())
+      console.log(newScore)
+      return newScore
+    })
+
+    if (dayToShow === 50) {
+      setShowFinalModal(true)
+      setShowConfetti(true)
+      setFeedback(null)
+    } else {
+      setShowModalCorrect(true)
+      setShowConfetti(true)
+      setFeedback(null)
     }
   }
 
@@ -178,7 +189,7 @@ export default function Page() {
             text={questionData.question}
             key={questionData.day} // Esto reinicia solo cuando la pregunta cambia
           />
-          <p className=" mb-4 text-sm">Puntaje: {questionData.score}</p>
+          <p className=" mb-4 text-sm">Puntaje: {questionScore}</p>
           <div className="grid grid-cols-1 gap-3">
             {questionData.day === 50 ? (
               <>
@@ -215,9 +226,9 @@ export default function Page() {
             )}
           </div>
         </div>
-          {feedback && (
-            <p className="mt-4 font-semibold text-red-400">{feedback}</p>
-          )}
+        {feedback && (
+          <p className="mt-4 font-semibold text-red-400">{feedback}</p>
+        )}
       </main>
 
       {/* Modal para respuesta correcta (no último día) */}
