@@ -449,7 +449,7 @@ export const questions = [
   },
   {
     day: 50,
-    question: "Solicita el código para continuar",
+    question: "  Solicita el código para continuar",
     options: [],
     answer: "0105",
     score: 20,

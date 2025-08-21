@@ -4,6 +4,7 @@ import Confetti from "react-confetti"
 import FloatingCandles from "../components/FloatingCandles"
 import TypewriterWithFeather from "../components/TypewriterWithFeather"
 import { questions } from "../data/questions"
+import Header from "../components/Header"
 const LOCAL_STORAGE_KEY = "dailyQuestionsAnswers"
 const LOCAL_STORAGE_SCORE = "totalScore"
 
@@ -26,7 +27,7 @@ export default function Page() {
 
   useEffect(() => {
     const today = new Date()
-    const firstDay = new Date(2025, 7, 9)
+    const firstDay = new Date(2025, 6, 3)
     today.setHours(0, 0, 0, 0)
     firstDay.setHours(0, 0, 0, 0)
 
@@ -181,7 +182,7 @@ export default function Page() {
     <div className="relative min-h-screen bg-black text-white">
       <FloatingCandles />
       {showConfetti && <Confetti />}
-      {/*<Header />*/}
+      {answers[50] && <Header />}
       <main className="relative z-10 flex flex-col items-center justify-center h-screen px-4">
         <div className="max-w-xl text-center">
           <h1 className="text-3xl font-bold mb-6">Día #{dayToShow}</h1>
